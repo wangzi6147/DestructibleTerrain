@@ -75,8 +75,10 @@ public class clipView extends View {
 			paint.setStyle(Paint.Style.FILL);
 			canvas.drawPath(path, paint);
 		}else {
+			canvas.save();
 			canvas.clipPath(path);
 			canvas.drawBitmap(bitmap, 0,0, null);
+			canvas.restore();
 		}
 	}
 
