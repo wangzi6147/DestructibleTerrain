@@ -6,10 +6,11 @@ import org.jbox2d.dynamics.World;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 
 public class MainActivity extends Activity {
 
@@ -30,6 +31,7 @@ public class MainActivity extends Activity {
 		setContentView(myView);
 		handler = new Handler();
 		handler.post(update);
+
 	}
 
 	private Runnable update = new Runnable() {

@@ -6,12 +6,8 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
-
-import ygame.extension.with_third_party.YIOnContactListener;
-import ygame.framework.core.YABaseDomain;
 
 import com.seisw.util.geom.Poly;
 import com.seisw.util.geom.PolyDefault;
@@ -28,8 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class myView extends View {
-	// 屏幕与真实世界的比例 40px=1m
-	private final static float RATE = 60f;
+	
 
 	private PolyDefault terrainPolygon;
 	private PolyDefault explosionPolygon;
@@ -48,10 +43,10 @@ public class myView extends View {
 		setTerrain();
 		bitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.testpic);
-		createTestBall(1000f / RATE, 10f / RATE, 20f / RATE);
+		createTestBall(1000f / Constants.RATE, 10f / Constants.RATE, 20f / Constants.RATE);
 	}
 
-	private void createTestBall(float ballX, float ballY, float radius) {
+	public void createTestBall(float ballX, float ballY, float radius) {
 		// TODO Auto-generated method stub
 		CircleShape ballShape = new CircleShape();
 		ballShape.setRadius(radius);
@@ -118,8 +113,8 @@ public class myView extends View {
 		mPaint.setAntiAlias(true);
 		mPaint.setColor(Color.GREEN);
 		canvas.save();
-		canvas.drawCircle(ballBody.getPosition().x * RATE,
-				ballBody.getPosition().y * RATE, 20, mPaint);
+		canvas.drawCircle(ballBody.getPosition().x * Constants.RATE,
+				ballBody.getPosition().y * Constants.RATE, 20, mPaint);
 		canvas.restore();
 	}
 
@@ -164,10 +159,10 @@ public class myView extends View {
 
 	private void createShortEdge(Poly innerPoly, int pointNum_1, int pointNum_2) {
 		// TODO Auto-generated method stub
-		Vec2 v1 = new Vec2((float) innerPoly.getX(pointNum_1) / RATE,
-				(float) innerPoly.getY(pointNum_1) / RATE);
-		Vec2 v2 = new Vec2((float) innerPoly.getX(pointNum_2) / RATE,
-				(float) innerPoly.getY(pointNum_2) / RATE);
+		Vec2 v1 = new Vec2((float) innerPoly.getX(pointNum_1) / Constants.RATE,
+				(float) innerPoly.getY(pointNum_1) / Constants.RATE);
+		Vec2 v2 = new Vec2((float) innerPoly.getX(pointNum_2) / Constants.RATE,
+				(float) innerPoly.getY(pointNum_2) / Constants.RATE);
 
 		shape.set(v1, v2);
 		fixtureDef.shape = shape;
