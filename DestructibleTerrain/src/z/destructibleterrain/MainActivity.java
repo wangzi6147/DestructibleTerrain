@@ -1,35 +1,46 @@
 package z.destructibleterrain;
 
+import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.World;
+
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
 
 public class MainActivity extends Activity {
+
+	private World world;
+
+	private Handler handler;
+
+	private myView myView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(new myView(this));
-		setContentView(new clipView(this));
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		world = new World(new Vec2(0, 10f));
+		myView = new myView(this, world);
+		setContentView(myView);
+		handler = new Handler();
+		handler.post(update);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
+	private Runnable update = new Runnable() {
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			world.step(1f / 60f, 10, 8);
+			myView.invalidate();
+			handler.postDelayed(update, 100 / 6);
 		}
-		return super.onOptionsItemSelected(item);
-	}
+	};
+
 }
