@@ -20,6 +20,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.MotionEvent;
@@ -50,8 +51,10 @@ public class MainActivity extends Activity {
 	private ArrayList<Body> balls = new ArrayList<Body>();
 
 	private PolyDefault explosionPolygon;
-	// 小球之间间隔
+	// 小球之间间隔(单位为1/60秒)
 	protected int timeInterBalls = 100;
+	// 实际屏幕高/1440(测试机屏幕高)
+	private float heightRate;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,17 +63,24 @@ public class MainActivity extends Activity {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		// 分辨率适配
+		Display display = getWindowManager().getDefaultDisplay();
+		heightRate = (float) display.getHeight() / 1440f;
 
 		world = new World(new Vec2(0, 10f));
-		myView = new myView(this);
+		myView = new myView(this, heightRate);
+		//关闭硬件加速
+		myView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		// 地图图片
 		bitmap = BitmapFactory.decodeResource(getResources(),
 				R.drawable.testpic);
 		myView.setBitmap(bitmap);
-		// 地图边缘
+		// 自定义地图边缘
 		setTerrain();
 
 		setContentView(myView);
+		
+		//消息队列，用来模拟物理世界迭代以及刷新视图
 		handler = new Handler();
 		handler.post(update);
 
@@ -78,29 +88,30 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
 		// 模拟爆炸多边形
 		explosionPolygon = createCircle(20, new Point((int) event.getX(),
-				(int) event.getY()), 60);
+				(int) event.getY()), 60 * heightRate);
 		// 多边形运算：模拟破坏地图效果
+		// 注意：PolyDefault类是一个多边形的集合，它可能包含多个多边形
 		terrainPolygon = (PolyDefault) terrainPolygon
 				.difference(explosionPolygon);
 		// 先创建出新地图刚体，再把原地图刚体摧毁
 		createEdgeBody(terrainPolygon);
 		Body oriBody = findBody("oriTerrain");
 		if (oriBody != null) {
-			world.destroyBody(findBody("oriTerrain"));
+			world.destroyBody(oriBody);
 		}
 		return super.onTouchEvent(event);
 	}
 
-	private PolyDefault createCircle(int polyNum, Point centerPoint, int radius) {
+	private PolyDefault createCircle(int polyNum, Point centerPoint,
+			float radius) {
 		// TODO Auto-generated method stub
 		double angle = 2 * Math.PI / polyNum;
 		PolyDefault circlePolygon = new PolyDefault();
 		for (int i = 0; i < polyNum; i++) {
-			int x = (int) (centerPoint.x + radius * Math.cos(angle * i));
-			int y = (int) (centerPoint.y + radius * Math.sin(angle * i));
+			float x = (float) (centerPoint.x + radius * Math.cos(angle * i));
+			float y = (float) (centerPoint.y + radius * Math.sin(angle * i));
 			circlePolygon.add(x, y);
 		}
 		return circlePolygon;
@@ -129,10 +140,11 @@ public class MainActivity extends Activity {
 	private void setTerrain() {
 		// TODO Auto-generated method stub
 		terrainPolygon = new PolyDefault();
-		terrainPolygon.add(500, 200);
-		terrainPolygon.add(1500, 200);
-		terrainPolygon.add(1500, 1200);
-		terrainPolygon.add(500, 1200);
+		terrainPolygon.add(500f * heightRate, 200f * heightRate);
+		terrainPolygon.add(1000f * heightRate, 300f * heightRate);
+		terrainPolygon.add(1500f * heightRate, 200f * heightRate);
+		terrainPolygon.add(1500f * heightRate, 1200f * heightRate);
+		terrainPolygon.add(500f * heightRate, 1200f * heightRate);
 		// 初始化地图刚体
 		createEdgeBody(terrainPolygon);
 	}
@@ -177,7 +189,7 @@ public class MainActivity extends Activity {
 		}
 		return null;
 	}
-	
+
 	private void createShortEdge(Poly innerPoly, int pointNum_1, int pointNum_2) {
 		// TODO Auto-generated method stub
 		Vec2 v1 = new Vec2((float) innerPoly.getX(pointNum_1) / Constants.RATE,
@@ -194,21 +206,22 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
 			// 测试小球
-			if(timeInterBalls==100){
-				balls.add(createTestBall(1000f / Constants.RATE,
-						10f / Constants.RATE, 20f / Constants.RATE));
+			if (timeInterBalls == 100) {
+				balls.add(createTestBall(1000f * heightRate / Constants.RATE,
+						20f * heightRate / Constants.RATE, 20f * heightRate
+								/ Constants.RATE));
 				timeInterBalls = 0;
 			}
 			timeInterBalls++;
-			//设置Box2D世界迭代
+			// 设置Box2D世界迭代
 			world.step(1f / 60f, 10, 8);
-			//传递绘制信息
+			// 传递绘制信息
 			myView.setBalls(balls);
 			myView.setTerrainPolygon(terrainPolygon);
 			myView.invalidate();
-			handler.postDelayed(update, 10);
+			
+			handler.postDelayed(update, (long) (1000f/60f));
 		}
 	};
 

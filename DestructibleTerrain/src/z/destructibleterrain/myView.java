@@ -16,12 +16,19 @@ import com.seisw.util.geom.PolyDefault;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PointF;
+import android.graphics.Bitmap.Config;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Region;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -30,9 +37,12 @@ public class myView extends View {
 	private PolyDefault terrainPolygon;
 	private Bitmap bitmap;
 	private ArrayList<Body> balls;
+	private float heightRate;
 
-	public myView(Context context) {
+	public myView(Context context, float heightRate) {
 		super(context);
+		this.heightRate = heightRate;
+		setBackgroundColor(Color.WHITE);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -42,8 +52,11 @@ public class myView extends View {
 		super.onDraw(canvas);
 		// 绘制测试小球
 		drawBall(canvas);
+		
+		// 绘制地图
+		// 注意：PolyDefault类是一个多边形的集合，它可能包含多个多边形
 		for (int i = 0; i < getTerrainPolygon().getNumInnerPoly(); i++) {
-			// 绘制地图
+			// 分别绘制各个多边形
 			drawPolygon(getTerrainPolygon().getInnerPoly(i), canvas);
 
 		}
@@ -59,7 +72,8 @@ public class myView extends View {
 
 			canvas.save();
 			canvas.drawCircle(balls.get(i).getPosition().x * Constants.RATE,
-					balls.get(i).getPosition().y * Constants.RATE, 20, mPaint);
+					balls.get(i).getPosition().y * Constants.RATE,
+					20 * heightRate, mPaint);
 			canvas.restore();
 		}
 	}
@@ -67,11 +81,11 @@ public class myView extends View {
 	private void drawPolygon(Poly poly, Canvas canvas) {
 		// TODO Auto-generated method stub
 		Path path = new Path();
-		Point point = new Point((int) poly.getX(0), (int) poly.getY(0));
+		PointF point = new PointF((float)poly.getX(0), (float)poly.getY(0));
 		path.moveTo(point.x, point.y);
 		for (int i = 1; i < poly.getInnerPoly(0).getNumPoints(); i++) {
-			point.x = (int) poly.getX(i);
-			point.y = (int) poly.getY(i);
+			point.x = (float) poly.getX(i);
+			point.y = (float) poly.getY(i);
 			path.lineTo(point.x, point.y);
 		}
 		path.close();
@@ -84,7 +98,7 @@ public class myView extends View {
 		} else {
 			canvas.save();
 			canvas.clipPath(path);
-			canvas.drawBitmap(getBitmap(), 0, 0, null);
+			canvas.drawBitmap(bitmap, 0, 0, null);
 			canvas.restore();
 		}
 	}
